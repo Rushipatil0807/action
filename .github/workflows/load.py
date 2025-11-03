@@ -1,1 +1,1 @@
-load("load data") 
+print("load data") 
