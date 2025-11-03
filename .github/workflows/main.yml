@@ -1,6 +1,5 @@
 name: ETL pipeline demo
 
-# Trigger on pushes to main branch and when a workflow_dispatch (manual) is used
 on:
   push:
     branches:
@@ -20,12 +19,27 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Show environment & files (debug)
+        run: |
+          echo "PWD: $(pwd)"
+          echo "Python: $(python --version)"
+          echo "Files in repo root:"
+          ls -la
+          echo "Contents of .github/workflows (if any):"
+          ls -la .github/workflows || true
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
+
       - name: Run extract
-        run: python extract.py
+        run: |
+          set -x
+          python extract.py
 
   transform:
     name: Transform
-    needs: extract        # waits for extract job to finish successfully
+    needs: extract
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,13 +49,17 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
 
       - name: Run transform
         run: python transform.py
 
   load:
     name: Load
-    needs: transform      # waits for transform
+    needs: transform
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -51,6 +69,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
 
       - name: Run load
         run: python load.py
