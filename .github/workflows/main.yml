@@ -1,78 +1,37 @@
 name: ETL pipeline demo
 
+# Trigger on pushes to main branch and when a workflow_dispatch (manual) is used
 on:
   push:
     branches:
       - main
-  workflow_dispatch: {}
 
 jobs:
-  extract:
-    name: Extract
+  extract-data-jobs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      - name: run extract.py
+        run: python extract.py
 
-      - name: Show environment & files (debug)
-        run: |
-          echo "PWD: $(pwd)"
-          echo "Python: $(python --version)"
-          echo "Files in repo root:"
-          ls -la
-          echo "Contents of .github/workflows (if any):"
-          ls -la .github/workflows || true
-
-      - name: Install dependencies (if requirements.txt exists)
-        run: |
-          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
-
-      - name: Run extract
-        run: |
-          set -x
-          python extract.py
-
-  transform:
-    name: Transform
-    needs: extract
+  transform-data-jobs
     runs-on: ubuntu-latest
+    needs:extract-data-jobs
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies (if requirements.txt exists)
-        run: |
-          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
-
-      - name: Run transform
+      - name: run transform.py
         run: python transform.py
-
-  load:
-    name: Load
-    needs: transform
+    
+  load-data-jobs
     runs-on: ubuntu-latest
+    needs:transform-data-jobs
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies (if requirements.txt exists)
-        run: |
-          if [ -f requirements.txt ]; then python -m pip install --upgrade pip; pip install -r requirements.txt; fi
-
-      - name: Run load
+      - name: run load.py
         run: python load.py
