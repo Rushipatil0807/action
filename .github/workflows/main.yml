@@ -1,0 +1,56 @@
+name: ETL pipeline demo
+
+# Trigger on pushes to main branch and when a workflow_dispatch (manual) is used
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  extract:
+    name: Extract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run extract
+        run: python extract.py
+
+  transform:
+    name: Transform
+    needs: extract        # waits for extract job to finish successfully
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run transform
+        run: python transform.py
+
+  load:
+    name: Load
+    needs: transform      # waits for transform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run load
+        run: python load.py
